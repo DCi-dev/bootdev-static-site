@@ -215,8 +215,6 @@ class TestSplitNodesDelimiter(unittest.TestCase):
             new_nodes,
         )
 
-
-    # NEW
     def test_text_to_textnodes_complex(self):
         text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
         expected = [
