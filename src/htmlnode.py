@@ -45,6 +45,24 @@ class HTMLNode:
             html_attributes.append(f' {key}={repr(value)}')
 
         return "".join(html_attributes)
+    
+    def children_to_html(self):
+        if self.tag is None:
+            return self.value if self.value is not None else ""
+        
+        props = self.props_to_html()
+        props = " " + props if props else ""
+        
+        if self.children is None:
+            if self.value is None:
+                return f"<{self.tag}{props}>"
+            return f"<{self.tag}{props}>{self.value}</{self.tag}>"
+        
+        children_html = "".join(
+            child.to_html() if isinstance(child, HTMLNode) else str(child)
+            for child in self.children
+        )
+        return f"<{self.tag}{props}>{children_html}</{self.tag}>"
 
     def __repr__(self):
         """

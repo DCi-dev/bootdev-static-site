@@ -1,5 +1,13 @@
 import unittest
-from markdown_parser import markdown_to_blocks, BlockType, block_to_block_type
+from markdown_parser import (
+    markdown_to_blocks,
+    BlockType,
+    block_to_block_type,
+    markdown_to_html_node,
+    block_to_html_node,
+    text_to_children,
+    text_node_to_html_node
+)
 
 class TestMarkdownToBlocks(unittest.TestCase):
     def test_markdown_to_blocks(self):
@@ -112,6 +120,65 @@ Some text here.
         block = ""
         self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
 
+
+class TestMarkdownToHTML(unittest.TestCase):
+    def test_paragraphs(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with *italic* text and `code` here
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
+
+
+    def test_headings(self):
+        md = """
+# Heading 1
+
+## Heading 2
+
+### Heading 3
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h1>Heading 1</h1><h2>Heading 2</h2><h3>Heading 3</h3></div>",
+        )
+
+    def test_lists(self):
+        md = """
+- Unordered item 1
+- Unordered item 2
+
+1. Ordered item 1
+2. Ordered item 2
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>Unordered item 1</li><li>Unordered item 2</li></ul><ol><li>Ordered item 1</li><li>Ordered item 2</li></ol></div>",
+        )
+
+    def test_quote(self):
+        md = """
+> This is a quote
+> It spans multiple lines
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><blockquote>This is a quote It spans multiple lines</blockquote></div>",
+        )
 
 if __name__ == "__main__":
     unittest.main()
