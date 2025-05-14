@@ -1,5 +1,5 @@
 import unittest
-from markdown_parser import markdown_to_blocks
+from markdown_parser import markdown_to_blocks, BlockType, block_to_block_type
 
 class TestMarkdownToBlocks(unittest.TestCase):
     def test_markdown_to_blocks(self):
@@ -42,9 +42,8 @@ Another paragraph.
                 "Another paragraph.",
             ],
         )
-def test_markdown_to_blocks_with_mixed_content(self):
-        md = """
-# Welcome
+    def test_markdown_to_blocks_with_mixed_content(self):
+        md = """# Welcome
 
 This is an introduction.
 
@@ -71,8 +70,47 @@ Some text here.
                 "Some text here.",
                 "1. Numbered item\n2. Another numbered item",
                 "> This is a blockquote.",
-            ],
-        )
+            ],)
+
+
+    def test_paragraph(self):
+        block = "This is a simple paragraph."
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_heading(self):
+        block = "# This is a heading"
+        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+
+        block = "### This is a level 3 heading"
+        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+
+    def test_code(self):
+        block = "```\ndef hello_world():\n    print('Hello, World!')\n```"
+        self.assertEqual(block_to_block_type(block), BlockType.CODE)
+
+    def test_quote(self):
+        block = "> This is a quote\n> It spans multiple lines"
+        self.assertEqual(block_to_block_type(block), BlockType.QUOTE)
+
+    def test_unordered_list(self):
+        block = "- Item 1\n- Item 2\n- Item 3"
+        self.assertEqual(block_to_block_type(block), BlockType.UNORDERED_LIST)
+
+    def test_ordered_list(self):
+        block = "1. First item\n2. Second item\n3. Third item"
+        self.assertEqual(block_to_block_type(block), BlockType.ORDERED_LIST)
+
+    def test_invalid_ordered_list(self):
+        block = "1. First item\n3. Third item\n2. Second item"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_mixed_content(self):
+        block = "This is a paragraph with a - dash"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_empty_block(self):
+        block = ""
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
 
 
 if __name__ == "__main__":
