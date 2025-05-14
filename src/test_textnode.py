@@ -1,55 +1,59 @@
 import unittest
-from textnode import TextNode, TextType
+
+from textnode import TextNode, TextType, text_node_to_html_node
+
 
 class TestTextNode(unittest.TestCase):
-    """
-    Test suite for the TextNode class.
-    """
-
-    # Test case 1: Equality with same values (basic)
     def test_eq(self):
-        node = TextNode("This is a text node", TextType.BOLD)
+        node = TextNode("This is a text node", TextType.TEXT)
+        node2 = TextNode("This is a text node", TextType.TEXT)
+        self.assertEqual(node, node2)
+
+    def test_eq_false(self):
+        node = TextNode("This is a text node", TextType.TEXT)
         node2 = TextNode("This is a text node", TextType.BOLD)
+        self.assertNotEqual(node, node2)
+
+    def test_eq_false2(self):
+        node = TextNode("This is a text node", TextType.TEXT)
+        node2 = TextNode("This is a text node2", TextType.TEXT)
+        self.assertNotEqual(node, node2)
+
+    def test_eq_url(self):
+        node = TextNode("This is a text node", TextType.TEXT, "https://www.boot.dev")
+        node2 = TextNode("This is a text node", TextType.TEXT, "https://www.boot.dev")
         self.assertEqual(node, node2)
 
-    # Test case 2: Equality with different text
-    def test_eq_different_text(self):
-        node = TextNode("This is node 1", TextType.TEXT)
-        node2 = TextNode("This is node 2", TextType.TEXT)
-        self.assertNotEqual(node, node2)
-
-    # Test case 3: Equality with different text_type
-    def test_eq_different_type(self):
-        node = TextNode("Same text here", TextType.TEXT)
-        node2 = TextNode("Same text here", TextType.BOLD)
-        self.assertNotEqual(node, node2)
-
-    # Test case 4: Equality with different url
-    def test_eq_different_url(self):
-        node = TextNode("Link Node", TextType.LINK, "https://example.com/1")
-        node2 = TextNode("Link Node", TextType.LINK, "https://example.com/2")
-        self.assertNotEqual(node, node2)
-
-    # Test case 5: Equality when one has URL, other is None
-    def test_eq_url_none_vs_value(self):
-        node = TextNode("Text Node", TextType.TEXT, None)
-        node2 = TextNode("Text Node", TextType.TEXT, "https://example.com")
-        self.assertNotEqual(node, node2)
-
-    # Test case 6: Equality when both have None URL
-    def test_eq_url_both_none(self):
-        node = TextNode("Plain text", TextType.TEXT, None)
-        node2 = TextNode("Plain text", TextType.TEXT, None)
-        self.assertEqual(node, node2)
-
-    # Test case 7: Equality with different types but url is None for both
-    def test_eq_different_type_url_none(self):
-        node = TextNode("Text content", TextType.TEXT, None)
-        node2 = TextNode("Text content", TextType.ITALIC, None)
-        self.assertNotEqual(node, node2)
+    def test_repr(self):
+        node = TextNode("This is a text node", TextType.TEXT, "https://www.boot.dev")
+        self.assertEqual(
+            "TextNode(This is a text node, text, https://www.boot.dev)", repr(node)
+        )
 
 
-# This allows running the tests directly from this file if needed,
-# but the test.sh script is the preferred way for the assignment.
+class TestTextNodeToHTMLNode(unittest.TestCase):
+    def test_text(self):
+        node = TextNode("This is a text node", TextType.TEXT)
+        html_node = text_node_to_html_node(node)
+        self.assertEqual(html_node.tag, None)
+        self.assertEqual(html_node.value, "This is a text node")
+
+    def test_image(self):
+        node = TextNode("This is an image", TextType.IMAGE, "https://www.boot.dev")
+        html_node = text_node_to_html_node(node)
+        self.assertEqual(html_node.tag, "img")
+        self.assertEqual(html_node.value, "")
+        self.assertEqual(
+            html_node.props,
+            {"src": "https://www.boot.dev", "alt": "This is an image"},
+        )
+
+    def test_bold(self):
+        node = TextNode("This is bold", TextType.BOLD)
+        html_node = text_node_to_html_node(node)
+        self.assertEqual(html_node.tag, "b")
+        self.assertEqual(html_node.value, "This is bold")
+
+
 if __name__ == "__main__":
     unittest.main()

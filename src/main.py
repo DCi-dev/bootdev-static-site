@@ -1,50 +1,32 @@
-import sys
 import os
 import shutil
+import sys
 
-def copy_static(src, dst):
-    """
-    Recursively copy contents from src directory to dst directory.
-    """
-    # First, delete the contents of the destination directory if it exists
-    if os.path.exists(dst):
-        shutil.rmtree(dst)
-    
-    # Create the destination directory
-    os.makedirs(dst)
+from copystatic import copy_files_recursive
+from gencontent import generate_pages_recursive
 
-    # Walk through the source directory
-    for root, dirs, files in os.walk(src):
-        # Create corresponding subdirectories in destination
-        for dir_name in dirs:
-            src_path = os.path.join(root, dir_name)
-            dst_path = os.path.join(dst, os.path.relpath(src_path, src))
-            os.makedirs(dst_path, exist_ok=True)
-            print(f"Created directory: {dst_path}")
 
-        # Copy files
-        for file_name in files:
-            src_path = os.path.join(root, file_name)
-            dst_path = os.path.join(dst, os.path.relpath(src_path, src))
-            shutil.copy2(src_path, dst_path)
-            print(f"Copied file: {dst_path}")
+dir_path_static = "./static"
+dir_path_public = "./docs"
+dir_path_content = "./content"
+template_path = "./template.html"
+default_basepath = "/"
+
 
 def main():
-    # Get the project root directory (assuming main.py is in src/)
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
-    # Set the paths for source and destination directories
-    static_dir = os.path.join(project_root, 'static')
-    public_dir = os.path.join(project_root, 'public')
+    basepath = default_basepath
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
 
-    # Check if static directory exists
-    if not os.path.exists(static_dir):
-        print(f"Error: Static directory not found at {static_dir}")
-        sys.exit(1)
+    print("Deleting public directory...")
+    if os.path.exists(dir_path_public):
+        shutil.rmtree(dir_path_public)
 
-    # Copy static files to public directory
-    copy_static(static_dir, public_dir)
-    print("Static files copied successfully!")
+    print("Copying static files to public directory...")
+    copy_files_recursive(dir_path_static, dir_path_public)
 
-if __name__ == "__main__":
-    main()
+    print("Generating content...")
+    generate_pages_recursive(dir_path_content, template_path, dir_path_public, basepath)
+
+
+main()

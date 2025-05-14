@@ -1,76 +1,113 @@
-# src/test_htmlnode.py
-
 import unittest
-from htmlnode import HTMLNode, LeafNode, ParentNode # Import ParentNode
+from htmlnode import LeafNode, ParentNode, HTMLNode
 
-# Keep your existing TestHTMLNode class for testing HTMLNode's methods (like props_to_html)
+
 class TestHTMLNode(unittest.TestCase):
-    """
-    Test suite for the base HTMLNode class (primarily testing props_to_html).
-    """
-    def test_props_to_html_multiple_props(self):
+    def test_to_html_props(self):
         node = HTMLNode(
-            "a",
-            "Click me!",
+            "div",
+            "Hello, world!",
             None,
-            {"href": "https://www.google.com", "target": "_blank"}
+            {"class": "greeting", "href": "https://boot.dev"},
         )
-        # >>> FIX: Expect single quotes based on error output <<<
-        expected_props_html = " href='https://www.google.com' target='_blank'" # Changed " to '
-        self.assertEqual(node.props_to_html(), expected_props_html)
+        self.assertEqual(
+            node.props_to_html(),
+            ' class="greeting" href="https://boot.dev"',
+        )
 
-    def test_props_to_html_single_prop(self):
+    def test_values(self):
         node = HTMLNode(
-            "img",
-            "",
-            None,
-            {"src": "/images/logo.png"}
+            "div",
+            "I wish I could read",
         )
-        # >>> FIX: Expect single quotes based on error output <<<
-        expected_props_html = " src='/images/logo.png'" # Changed " to '
-        self.assertEqual(node.props_to_html(), expected_props_html)
+        self.assertEqual(
+            node.tag,
+            "div",
+        )
+        self.assertEqual(
+            node.value,
+            "I wish I could read",
+        )
+        self.assertEqual(
+            node.children,
+            None,
+        )
+        self.assertEqual(
+            node.props,
+            None,
+        )
 
-    def test_props_to_html_no_props(self):
+    def test_repr(self):
         node = HTMLNode(
             "p",
-            "Just a paragraph.",
+            "What a strange world",
             None,
-            None
+            {"class": "primary"},
         )
-        expected_props_html = ""
-        self.assertEqual(node.props_to_html(), expected_props_html)
+        self.assertEqual(
+            node.__repr__(),
+            "HTMLNode(p, What a strange world, children: None, {'class': 'primary'})",
+        )
 
-    def test_props_to_html_empty_props_dict(self):
-         node = HTMLNode(
-             "div",
-             "Empty props dict",
-             None,
-             {}
-         )
-         expected_props_html = ""
-         self.assertEqual(node.props_to_html(), expected_props_html)
-
-
-# Keep existing TestLeafNode class...
-class TestLeafNode(unittest.TestCase):
-    """
-    Test suite for the LeafNode class.
-    """
-
-   # Test case 1: Basic paragraph tag
     def test_leaf_to_html_p(self):
         node = LeafNode("p", "Hello, world!")
         self.assertEqual(node.to_html(), "<p>Hello, world!</p>")
 
-    # Test case 2: Anchor tag with href property
     def test_leaf_to_html_a(self):
-        node = LeafNode("a", "Click here", {"href": "https://www.google.com"})
-        # This is the line that likely has the typo or copy/paste issue
-        # Ensure this string literal is correctly opened and closed
-        expected_html = "<a href='https://www.google.com'>Click here</a>" # <--- Verify this line
-        self.assertEqual(node.to_html(), expected_html) # <--- Line 69
+        node = LeafNode("a", "Click me!", {"href": "https://www.google.com"})
+        self.assertEqual(
+            node.to_html(),
+            '<a href="https://www.google.com">Click me!</a>',
+        )
 
-    # Test case 3: Heading tag without properties
-    def test_leaf_to_html_h1(self):
-        node = LeafNode("h1", "Main Title")
-        self.assertEqual(node.to_html(), "<h1>Main Title</h1>")
+    def test_leaf_to_html_no_tag(self):
+        node = LeafNode(None, "Hello, world!")
+        self.assertEqual(node.to_html(), "Hello, world!")
+
+    def test_to_html_with_children(self):
+        child_node = LeafNode("span", "child")
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(parent_node.to_html(), "<div><span>child</span></div>")
+
+    def test_to_html_with_grandchildren(self):
+        grandchild_node = LeafNode("b", "grandchild")
+        child_node = ParentNode("span", [grandchild_node])
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span><b>grandchild</b></span></div>",
+        )
+
+    def test_to_html_many_children(self):
+        node = ParentNode(
+            "p",
+            [
+                LeafNode("b", "Bold text"),
+                LeafNode(None, "Normal text"),
+                LeafNode("i", "italic text"),
+                LeafNode(None, "Normal text"),
+            ],
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>",
+        )
+
+    def test_headings(self):
+        node = ParentNode(
+            "h2",
+            [
+                LeafNode("b", "Bold text"),
+                LeafNode(None, "Normal text"),
+                LeafNode("i", "italic text"),
+                LeafNode(None, "Normal text"),
+            ],
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<h2><b>Bold text</b>Normal text<i>italic text</i>Normal text</h2>",
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
