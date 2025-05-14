@@ -1,24 +1,50 @@
 import sys
-from textnode import TextNode, TextType
+import os
+import shutil
+
+def copy_static(src, dst):
+    """
+    Recursively copy contents from src directory to dst directory.
+    """
+    # First, delete the contents of the destination directory if it exists
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+    
+    # Create the destination directory
+    os.makedirs(dst)
+
+    # Walk through the source directory
+    for root, dirs, files in os.walk(src):
+        # Create corresponding subdirectories in destination
+        for dir_name in dirs:
+            src_path = os.path.join(root, dir_name)
+            dst_path = os.path.join(dst, os.path.relpath(src_path, src))
+            os.makedirs(dst_path, exist_ok=True)
+            print(f"Created directory: {dst_path}")
+
+        # Copy files
+        for file_name in files:
+            src_path = os.path.join(root, file_name)
+            dst_path = os.path.join(dst, os.path.relpath(src_path, src))
+            shutil.copy2(src_path, dst_path)
+            print(f"Copied file: {dst_path}")
 
 def main():
-  """
-  Creates and prints a TextNode object for demonstration.
-  """
-  # Create a TextNode object with dummy values
-  dummy_node = TextNode("This is some anchor text", TextType.LINK, "https://www.boot.dev")
+    # Get the project root directory (assuming main.py is in src/)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # Set the paths for source and destination directories
+    static_dir = os.path.join(project_root, 'static')
+    public_dir = os.path.join(project_root, 'public')
 
-  # Print the object (which will use the __repr__ method)
-  print(dummy_node)
+    # Check if static directory exists
+    if not os.path.exists(static_dir):
+        print(f"Error: Static directory not found at {static_dir}")
+        sys.exit(1)
 
-  # Example of another node type
-  another_node = TextNode("This is just plain text", TextType.TEXT)
-  print(another_node)
-
-  # Example with no URL
-  bold_node = TextNode("This is bold text", TextType.BOLD)
-  print(bold_node)
+    # Copy static files to public directory
+    copy_static(static_dir, public_dir)
+    print("Static files copied successfully!")
 
 if __name__ == "__main__":
-  # For this assignment, we just want to run the new main()
-  main()
+    main()
